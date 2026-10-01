@@ -1,9 +1,9 @@
 ---
 lab:
-    title: 'Automated evaluation with cloud evaluators'
-    description: 'Scale quality testing with automated cloud evaluators for systematic evaluation of AI agents'
-    level: 300
-    duration: 40 minutes
+  title: 'Automated evaluation with cloud evaluators'
+  description: 'Scale quality testing with automated cloud evaluators for systematic evaluation of AI agents'
+  level: 300
+  duration: 40 minutes
 ---
 
 # Automated evaluation with cloud evaluators
@@ -64,10 +64,10 @@ After creating your repository, clone it to your local machine.
 
 1. List the extensions you already have, and install the one this template needs:
 
-    ```powershell
-    azd extension list --installed
-    azd extension install azure.ai.agents
-    ```
+   ```powershell
+   azd extension list --installed
+   azd extension install azure.ai.agents
+   ```
 
 ### Check model availability in your region
 
@@ -75,22 +75,22 @@ The template deploys `gpt-5-mini` on the `GlobalStandard` SKU. Model and SKU ava
 
 1. Sign in and list the models offered in your region:
 
-    ```powershell
-    az login
-    az cognitiveservices model list -l swedencentral --query "[?contains(model.name,'gpt-5')].{name:model.name, ver:model.version, sku:model.skus[0].name}" -o table
-    ```
+   ```powershell
+   az login
+   az cognitiveservices model list -l swedencentral --query "[?contains(model.name,'gpt-5')].{name:model.name, ver:model.version, sku:model.skus[0].name}" -o table
+   ```
 
-    Note the `sku` column. A model shown only as `Standard` cannot be deployed as `GlobalStandard`.
+   Note the `sku` column. A model shown only as `Standard` cannot be deployed as `GlobalStandard`.
 
 1. Confirm you have quota for the model you intend to use:
 
-    ```powershell
-    az cognitiveservices usage list -l swedencentral --query "[?contains(name.value,'GlobalStandard') && contains(name.value,'5-mini')].{name:name.value,used:currentValue,limit:limit}" -o table
-    ```
+   ```powershell
+   az cognitiveservices usage list -l swedencentral --query "[?contains(name.value,'GlobalStandard') && contains(name.value,'5-mini')].{name:name.value,used:currentValue,limit:limit}" -o table
+   ```
 
 1. If your chosen model is unavailable in the region, edit the `aiProjectDeploymentsJson` block in `infra/main.bicep` before continuing.
 
-    Whichever model you deploy becomes your judge model. Use that same name for `MODEL_NAME` later in this exercise.
+   Whichever model you deploy becomes your judge model. Use that same name for `MODEL_NAME` later in this exercise.
 
 ### Deploy Microsoft Foundry resources
 
@@ -100,72 +100,74 @@ Now you'll use the Azure Developer CLI to deploy all required Azure resources.
 
 1. Authenticate with Azure Developer CLI:
 
-    ```powershell
-    azd auth login
-    ```
+   ```powershell
+   azd auth login
+   ```
 
-    This opens a browser window for Azure authentication. Sign in with your Azure credentials.
+   This opens a browser window for Azure authentication. Sign in with your Azure credentials.
 
 1. Authenticate with Azure CLI:
 
-    ```powershell
-    az login
-    ```
+   ```powershell
+   az login
+   ```
 
-    Sign in with your Azure credentials when prompted.
+   Sign in with your Azure credentials when prompted.
 
-    > ⚠️ **Important**
-    > In some environments, the VS Code integrated terminal may crash or close during the interactive login flow.
-    > If this happens, use device code authentication instead:
-    > ```powershell
-    > az login --use-device-code
-    > ```
+   > ⚠️ **Important**
+   > In some environments, the VS Code integrated terminal may crash or close during the interactive login flow.
+   > If this happens, use device code authentication instead:
+   >
+   > ```powershell
+   > az login --use-device-code
+   > ```
 
 1. Provision resources:
 
-    ```powershell
-    azd up
-    ```
+   ```powershell
+   azd up
+   ```
 
-    > **Note**: If `azd up` fails because the model deployment is unavailable in your region, revisit **Check model availability in your region** above, update the `aiProjectDeploymentsJson` block in `infra/main.bicep`, and rerun the command.
+   > **Note**: If `azd up` fails because the model deployment is unavailable in your region, revisit **Check model availability in your region** above, update the `aiProjectDeploymentsJson` block in `infra/main.bicep`, and rerun the command.
 
-    > **Tip**: To provision without the interactive prompts, create the environment first:
-    > ```powershell
-    > azd env new <env-name> --subscription <subscription-id> --location swedencentral
-    > azd up --no-prompt
-    > ```
+   > **Tip**: To provision without the interactive prompts, create the environment first:
+   >
+   > ```powershell
+   > azd env new <env-name> --subscription <subscription-id> --location swedencentral
+   > azd up --no-prompt
+   > ```
 
-    When prompted, provide:
-    - **Environment name** (e.g., `dev`, `test`) - Used to name all resources
-    - **Azure subscription** - Where resources will be created
-    - **Location** - Azure region (recommended: Sweden Central)
+   When prompted, provide:
+   - **Environment name** (e.g., `dev`, `test`) - Used to name all resources
+   - **Azure subscription** - Where resources will be created
+   - **Location** - Azure region (recommended: Sweden Central)
 
-    The command deploys the infrastructure from the `infra\` folder, creating:
-    - **Resource Group** - Container for all resources
-    - **Foundry (AI Services)** - The hub with access to models such as GPT-5.1
-    - **Foundry Project** - Your workspace for creating and managing prompts
-    - **Log Analytics Workspace** - Collects logs and telemetry data
-    - **Application Insights** - Monitors performance and usage
-    - **Container Registry** - Created because `enableHostedAgents` defaults to `true`. This exercise does not use hosted agents; set `ENABLE_HOSTED_AGENTS=false` in your azd environment to skip it and the capability host step it provisions.
+   The command deploys the infrastructure from the `infra\` folder, creating:
+   - **Resource Group** - Container for all resources
+   - **Foundry (AI Services)** - The hub with access to models such as GPT-5.1
+   - **Foundry Project** - Your workspace for creating and managing prompts
+   - **Log Analytics Workspace** - Collects logs and telemetry data
+   - **Application Insights** - Monitors performance and usage
+   - **Container Registry** - Created because `enableHostedAgents` defaults to `true`. This exercise does not use hosted agents; set `ENABLE_HOSTED_AGENTS=false` in your azd environment to skip it and the capability host step it provisions.
 
 1. Create a `.env` file with the environment variables:
 
-    ```powershell
-    azd env get-values | Out-File .env -Encoding utf8
-    ```
+   ```powershell
+   azd env get-values | Out-File .env -Encoding utf8
+   ```
 
-    > ⚠️ **Important – File Encoding**
-    >
-    > `Out-File -Encoding utf8` is used instead of `> .env` because the redirect writes **UTF-16 LE** in Windows PowerShell 5.1, which causes the variables to be read incorrectly.
-    >
-    > If you used the redirect, make sure the `.env` file is saved using **UTF-8** encoding.
-    >
-    > In editors like **VS Code**, check the encoding indicator in the bottom-right corner.  
-    > If it shows **UTF-16 LE** (or any encoding other than UTF-8), click it, choose **Save with Encoding**, and select **UTF-8**.
-    >
-    > Using the wrong encoding may cause environment variables to be read incorrectly.
+   > ⚠️ **Important – File Encoding**
+   >
+   > `Out-File -Encoding utf8` is used instead of `> .env` because the redirect writes **UTF-16 LE** in Windows PowerShell 5.1, which causes the variables to be read incorrectly.
+   >
+   > If you used the redirect, make sure the `.env` file is saved using **UTF-8** encoding.
+   >
+   > In editors like **VS Code**, check the encoding indicator in the bottom-right corner.  
+   > If it shows **UTF-16 LE** (or any encoding other than UTF-8), click it, choose **Save with Encoding**, and select **UTF-8**.
+   >
+   > Using the wrong encoding may cause environment variables to be read incorrectly.
 
-    This creates a `.env` file in your project root with all the provisioned resource information.
+   This creates a `.env` file in your project root with all the provisioned resource information.
 
 ### Install Python dependencies
 
@@ -173,54 +175,54 @@ With your Azure resources deployed, install the required Python packages.
 
 1. In the VS Code terminal, create and activate a virtual environment:
 
-    ```powershell
-    python -m venv .venv
-    .venv\Scripts\Activate.ps1
-    ```
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\Activate.ps1
+   ```
 
 1. Add the virtual environment to `.gitignore`.
 
-    The repository's `.gitignore` already covers `.env` and `.azure/`, but not `.venv/`, so a later `git add .` would commit the whole virtual environment:
+   The repository's `.gitignore` already covers `.env` and `.azure/`, but not `.venv/`, so a later `git add .` would commit the whole virtual environment:
 
-    ```powershell
-    Add-Content .gitignore "`n# Local Python environment`n.venv/`n__pycache__/"
-    ```
+   ```powershell
+   Add-Content .gitignore "`n# Local Python environment`n.venv/`n__pycache__/"
+   ```
 
 1. Install the required dependencies:
 
-    ```powershell
-    python -m pip install -r requirements.txt
-    ```
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
 
-    This installs necessary dependencies including:
-    - `azure-ai-projects` - SDK for working with Microsoft Foundry
-    - `azure-identity` - Azure authentication
-    - `python-dotenv` - Load environment variables
+   This installs necessary dependencies including:
+   - `azure-ai-projects` - SDK for working with Microsoft Foundry
+   - `azure-identity` - Azure authentication
+   - `python-dotenv` - Load environment variables
 
 1. Add the agent configuration to your `.env` file:
 
-    Open the `.env` file in your repository root and add:
+   Open the `.env` file in your repository root and add:
 
-    ```
-    AGENT_NAME="trail-guide"
-    MODEL_NAME="<model_name>"
-    ```
+   ```
+   AGENT_NAME="trail-guide"
+   MODEL_NAME="<model_name>"
+   ```
 
-    > **Note**: Set `MODEL_NAME` to the model deployment you created during provisioning.
+   > **Note**: Set `MODEL_NAME` to the model deployment you created during provisioning.
 
 1. On Windows, set the console encoding for this terminal session:
 
-    ```powershell
-    $env:PYTHONIOENCODING = "utf-8"
-    ```
+   ```powershell
+   $env:PYTHONIOENCODING = "utf-8"
+   ```
 
-    `evaluate_agent.py` prints a `✓` character in its progress output. Python on Windows encodes stdout using the system code page (cp1252) and the script stops partway through with:
+   `evaluate_agent.py` prints a `✓` character in its progress output. Python on Windows encodes stdout using the system code page (cp1252) and the script stops partway through with:
 
-    ```
-    Error: 'charmap' codec can't encode character '✓' in position 2: character maps to <undefined>
-    ```
+   ```
+   Error: 'charmap' codec can't encode character '✓' in position 2: character maps to <undefined>
+   ```
 
-    The failure happens after the dataset upload, so it can look like an upload or permissions problem when it is purely an encoding one.
+   The failure happens after the dataset upload, so it can look like an upload or permissions problem when it is purely an encoding one.
 
 ## Understand the evaluation workflow
 
@@ -254,11 +256,11 @@ The repository includes `data/trail_guide_evaluation_dataset.jsonl` with 89 pre-
 
 You'll use Microsoft Foundry's built-in quality evaluators:
 
-| Evaluator | Measures | Output | Use Case |
-|-----------|----------|--------|----------|
-| **Intent Resolution** | Query intent addressed | 1-5 score | Ensure user needs are met |
-| **Relevance** | Response addresses query | 1-5 score | Validate query-response alignment |
-| **Groundedness** | Factual accuracy | 1-5 score | Ensure reliable information |
+| Evaluator             | Measures                 | Output    | Use Case                          |
+| --------------------- | ------------------------ | --------- | --------------------------------- |
+| **Intent Resolution** | Query intent addressed   | 1-5 score | Ensure user needs are met         |
+| **Relevance**         | Response addresses query | 1-5 score | Validate query-response alignment |
+| **Groundedness**      | Factual accuracy         | 1-5 score | Ensure reliable information       |
 
 All evaluators use the configured judge model as an LLM judge and return. The examples below use GPT-5.1:
 
@@ -275,23 +277,24 @@ First, examine the prepared dataset structure.
 
 1. View the first few entries in the dataset:
 
-    ```powershell
-    Get-Content data/trail_guide_evaluation_dataset.jsonl -Head 3
-    ```
+   ```powershell
+   Get-Content data/trail_guide_evaluation_dataset.jsonl -Head 3
+   ```
 
-    Output:
-    ```json
-    {"query": "What essential gear do I need for a summer day hike?", "response": "For a summer day hike, essential gear includes: proper hiking boots with good ankle support, moisture-wicking clothing in layers, a daypack (20-30L), 2 liters of water, high-energy snacks, sun protection (hat, sunglasses, sunscreen SPF 30+), a basic first aid kit, map and compass or GPS device, headlamp with extra batteries, and a whistle for emergencies...", "ground_truth": "Essential day hike gear includes footwear, water, food, sun protection, navigation tools, first aid, and emergency supplies."}
-    {"query": "How much water should I bring on a 5-mile hike?", "response": "For a 5-mile hike, plan to bring at least 1-2 liters of water...", "ground_truth": "Bring 1-2 liters of water for a 5-mile hike, adjusting for weather and terrain."}
-    ```
+   Output:
+
+   ```json
+   {"query": "What essential gear do I need for a summer day hike?", "response": "For a summer day hike, essential gear includes: proper hiking boots with good ankle support, moisture-wicking clothing in layers, a daypack (20-30L), 2 liters of water, high-energy snacks, sun protection (hat, sunglasses, sunscreen SPF 30+), a basic first aid kit, map and compass or GPS device, headlamp with extra batteries, and a whistle for emergencies...", "ground_truth": "Essential day hike gear includes footwear, water, food, sun protection, navigation tools, first aid, and emergency supplies."}
+   {"query": "How much water should I bring on a 5-mile hike?", "response": "For a 5-mile hike, plan to bring at least 1-2 liters of water...", "ground_truth": "Bring 1-2 liters of water for a 5-mile hike, adjusting for weather and terrain."}
+   ```
 
 1. Count total entries in the dataset:
 
-    ```powershell
-    (Get-Content data/trail_guide_evaluation_dataset.jsonl).Count
-    ```
+   ```powershell
+   (Get-Content data/trail_guide_evaluation_dataset.jsonl).Count
+   ```
 
-    Expected: 89 entries
+   Expected: 89 entries
 
 ### Understand the evaluation pipeline
 
@@ -315,119 +318,121 @@ Execute the complete evaluation pipeline with one command.
 
 1. **Run the evaluation**
 
-    Run the evaluation script to execute the complete evaluation pipeline:
+   Run the evaluation script to execute the complete evaluation pipeline:
 
-    ```powershell
-    python src/evaluators/evaluate_agent.py
-    ```
+   ```powershell
+   python src/evaluators/evaluate_agent.py
+   ```
 
-    Expected output:
+   Expected output:
 
-    ```
-    ================================================================================
-     Trail Guide Agent - Cloud Evaluation
-    ================================================================================
+   ```
+   ================================================================================
+    Trail Guide Agent - Cloud Evaluation
+   ================================================================================
 
-    Configuration:
-      Project: https://<account>.services.ai.azure.com/api/projects/<project>
-      Model: gpt-5.1
-      Dataset: trail-guide-evaluation-dataset (v1)
+   Configuration:
+     Project: https://<account>.services.ai.azure.com/api/projects/<project>
+     Model: gpt-5.1
+     Dataset: trail-guide-evaluation-dataset (v1)
 
-    ================================================================================
-    Step 1: Uploading evaluation dataset
-    ================================================================================
+   ================================================================================
+   Step 1: Uploading evaluation dataset
+   ================================================================================
 
-    Dataset: trail_guide_evaluation_dataset.jsonl
-    Uploading...
+   Dataset: trail_guide_evaluation_dataset.jsonl
+   Uploading...
 
-    ✓ Dataset uploaded successfully
-      Dataset ID: file-abc123xyz
+   ✓ Dataset uploaded successfully
+     Dataset ID: file-abc123xyz
 
-    ================================================================================
-    Step 2: Creating evaluation definition
-    ================================================================================
+   ================================================================================
+   Step 2: Creating evaluation definition
+   ================================================================================
 
-    Configuration:
-      Judge Model: gpt-5.1
-      Evaluators: Intent Resolution, Relevance, Groundedness
+   Configuration:
+     Judge Model: gpt-5.1
+     Evaluators: Intent Resolution, Relevance, Groundedness
 
-    Creating evaluation...
+   Creating evaluation...
 
-    ✓ Evaluation definition created
-      Evaluation ID: eval-def456uvw
+   ✓ Evaluation definition created
+     Evaluation ID: eval-def456uvw
 
-    ================================================================================
-    Step 3: Running cloud evaluation
-    ================================================================================
+   ================================================================================
+   Step 3: Running cloud evaluation
+   ================================================================================
 
-    ✓ Evaluation run started
-      Run ID: run-ghi789rst
-      Status: running
+   ✓ Evaluation run started
+     Run ID: run-ghi789rst
+     Status: running
 
-    This may take 15-60+ minutes for 89 items depending on capacity and quota...
+   This may take 15-60+ minutes for 89 items depending on capacity and quota...
 
-    ================================================================================
-    Step 4: Polling for completion
-    ================================================================================
-      [487s] Status: running
+   ================================================================================
+   Step 4: Polling for completion
+   ================================================================================
+     [487s] Status: running
 
-    ✓ Evaluation completed successfully
-      Total time: 512 seconds
+   ✓ Evaluation completed successfully
+     Total time: 512 seconds
 
-    ================================================================================
-    Step 5: Retrieving results
-    ================================================================================
+   ================================================================================
+   Step 5: Retrieving results
+   ================================================================================
 
-    Evaluation Summary
-      Report URL: https://<account>.services.ai.azure.com/projects/<project>/evaluations/...
+   Evaluation Summary
+     Report URL: https://<account>.services.ai.azure.com/projects/<project>/evaluations/...
 
-    Average Scores (1-5 scale, threshold: 3)
-      Intent Resolution: 4.52 (n=89)
-      Relevance:         4.41 (n=89)
-      Groundedness:      4.18 (n=89)
+   Average Scores (1-5 scale, threshold: 3)
+     Intent Resolution: 4.52 (n=89)
+     Relevance:         4.41 (n=89)
+     Groundedness:      4.18 (n=89)
 
-    Pass Rates (score >= 3)
-      Intent Resolution: 96.0%
-      Relevance:         95.5%
-      Groundedness:      91.0%
+   Pass Rates (score >= 3)
+     Intent Resolution: 96.0%
+     Relevance:         95.5%
+     Groundedness:      91.0%
 
-    ================================================================================
-    Cloud evaluation complete
-    ================================================================================
+   ================================================================================
+   Cloud evaluation complete
+   ================================================================================
 
-    Next steps:
-      1. Review detailed results in Microsoft Foundry portal
-      2. Analyze patterns in successful and failed evaluations
-      3. Document key findings and recommendations
-    ```
+   Next steps:
+     1. Review detailed results in Microsoft Foundry portal
+     2. Analyze patterns in successful and failed evaluations
+     3. Document key findings and recommendations
+   ```
 
-    > **Note**: Evaluation runtime varies based on dataset size, model capacity, regional demand, and quota. For 89 items, 15-60+ minutes is not unusual, and constrained environments can take longer. If the script remains in `polling for completion` without an error, the cloud evaluation is usually still running.
+   > **Note**: Evaluation runtime varies based on dataset size, model capacity, regional demand, and quota. For 89 items, 15-60+ minutes is not unusual, and constrained environments can take longer. If the script remains in `polling for completion` without an error, the cloud evaluation is usually still running.
 
-    > **Tip**: For an initial smoke test, evaluate a smaller dataset first so you can validate authentication, dataset upload, evaluator setup, and scoring in about two minutes instead of waiting for the full 89-item run:
-    > ```powershell
-    > $rows = Get-Content data/trail_guide_evaluation_dataset.jsonl -Head 5
-    > Set-Content data/trail_guide_evaluation_dataset.jsonl -Value $rows -Encoding utf8
-    > ```
-    > Restore the full dataset with `git restore data/trail_guide_evaluation_dataset.jsonl`. The script uploads the dataset as version `1` and Foundry refuses to reuse a name and version with different contents, so bump `dataset_version` in the script when you switch back to the full set.
+   > **Tip**: For an initial smoke test, evaluate a smaller dataset first so you can validate authentication, dataset upload, evaluator setup, and scoring in about two minutes instead of waiting for the full 89-item run:
+   >
+   > ```powershell
+   > $rows = Get-Content data/trail_guide_evaluation_dataset.jsonl -Head 5
+   > Set-Content data/trail_guide_evaluation_dataset.jsonl -Value $rows -Encoding utf8
+   > ```
+   >
+   > Restore the full dataset with `git restore data/trail_guide_evaluation_dataset.jsonl`. The script uploads the dataset as version `1` and Foundry refuses to reuse a name and version with different contents, so bump `dataset_version` in the script when you switch back to the full set.
 
-    > **Note**: If this first run fails during dataset upload with `('Connection aborted.', ConnectionResetError(10054, ...))`, the role assignment from `azd up` has not finished propagating. Wait a minute and run the script again.
+   > **Note**: If this first run fails during dataset upload with `('Connection aborted.', ConnectionResetError(10054, ...))`, the role assignment from `azd up` has not finished propagating. Wait a minute and run the script again.
 
 1. **Commit the results file**
 
-    The script writes a summary to `evaluation_results.txt` in your project root. Commit this file if you want to keep the local evaluation summary in source control:
+   The script writes a summary to `evaluation_results.txt` in your project root. Commit this file if you want to keep the local evaluation summary in source control:
 
-    If Git reports `Author identity unknown`, configure your identity once before committing:
+   If Git reports `Author identity unknown`, configure your identity once before committing:
 
-    ```powershell
-    git config --global user.name "Your GitHub Username"
-    git config --global user.email "your-email@example.com"
-    ```
+   ```powershell
+   git config --global user.name "Your GitHub Username"
+   git config --global user.email "your-email@example.com"
+   ```
 
-    ```powershell
-    git add evaluation_results.txt
-    git commit -m "Add evaluation results"
-    git push
-    ```
+   ```powershell
+   git add evaluation_results.txt
+   git commit -m "Add evaluation results"
+   git push
+   ```
 
 ### Automate with GitHub Actions
 
@@ -435,208 +440,214 @@ The evaluation script integrates with GitHub Actions to automatically run evalua
 
 1. **Uncomment the PR trigger in the workflow**
 
-    In the template repository, the pull request trigger is commented out by default. Open `.github/workflows/evaluate-agent.yml` and uncomment the `pull_request` trigger before testing the PR flow.
+   In the template repository, the pull request trigger is commented out by default. Open `.github/workflows/evaluate-agent.yml` and uncomment the `pull_request` trigger before testing the PR flow.
 
-    Change this:
+   Change this:
 
-    ```yaml
-    on:
-      # pull_request:
-      #   branches: [main]
-      #   paths:
-      #     - 'src/agents/trail_guide_agent/**'
-      workflow_dispatch:
-    ```
+   ```yaml
+   on:
+     # pull_request:
+     #   branches: [main]
+     #   paths:
+     #     - 'src/agents/trail_guide_agent/**'
+     workflow_dispatch:
+   ```
 
-    To this:
+   To this:
 
-    ```yaml
-    on:
-      pull_request:
-        branches: [main]
-        paths:
-          - 'src/agents/trail_guide_agent/**'
-      workflow_dispatch:
-    ```
+   ```yaml
+   on:
+     pull_request:
+       branches: [main]
+       paths:
+         - 'src/agents/trail_guide_agent/**'
+     workflow_dispatch:
+   ```
 
-    Save the file and commit this workflow change before creating the test pull request. If you skip this step, the workflow will not start automatically for PRs.
+   Save the file and commit this workflow change before creating the test pull request. If you skip this step, the workflow will not start automatically for PRs.
 
 1. **Configure Azure authentication**
 
-    > **Important - Tenant alignment**
-    >
-    > Before creating the service principal, make sure your Azure CLI session is using the same tenant as the subscription that holds your Foundry resources:
-    > ```powershell
-    > az account show --query "{subscription:id, tenant:tenantId}" -o table
-    > ```
-    > If needed, switch to the correct tenant and subscription before continuing. Creating the app in the wrong tenant is a common cause of OIDC sign-in failures later.
+   > **Important - Tenant alignment**
+   >
+   > Before creating the service principal, make sure your Azure CLI session is using the same tenant as the subscription that holds your Foundry resources:
+   >
+   > ```powershell
+   > az account show --query "{subscription:id, tenant:tenantId}" -o table
+   > ```
+   >
+   > If needed, switch to the correct tenant and subscription before continuing. Creating the app in the wrong tenant is a common cause of OIDC sign-in failures later.
 
-    Create a service principal for GitHub Actions:
+   Create an app registration and service principal for GitHub Actions. This works with Azure CLI 2.67.0 and does not create a password credential:
 
-    ```powershell
-    az ad sp create-for-rbac --name "github-agent-evaluator" --create-password false
-    ```
+   ```powershell
+   $appId = az ad app create `
+     --display-name "github-agent-evaluator" `
+     --query appId -o tsv
+   az ad sp create --id $appId
+   $tenantId = az account show --query tenantId -o tsv
+   ```
 
-    Save the `appId` and `tenant` values from the output. The workflow below uses OIDC federated credentials. The `--create-password false` is included as your Entra ID tenant might have applied basline security mode defaults, specifically `Block new password credentials in apps` which would throw a policy error.
+   Save `$appId` as `AZURE_CLIENT_ID` and `$tenantId` as `AZURE_TENANT_ID` in GitHub Secrets. The workflow uses OIDC federated credentials, so it does not need a client secret. Creating the app and service principal separately avoids the `--create-password` option, which is unavailable in some Azure CLI versions, including 2.67.0.
 
-    > **Note**: On current Azure CLI versions this command creates the app and service principal **without any role assignment**, so the role assignment below is required rather than additive.
+   > **Note**: On current Azure CLI versions this command creates the app and service principal **without any role assignment**, so the role assignment below is required rather than additive.
 
-    Assign the **Foundry User** role so the service principal can call the Foundry project API:
+   Assign the **Foundry User** role so the service principal can call the Foundry project API:
 
-    ```powershell
-    az role assignment create `
-      --assignee "<appId>" `
-      --role "Foundry User" `
-      --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>"
-    ```
+   ```powershell
+   az role assignment create `
+     --assignee "<appId>" `
+     --role "Foundry User" `
+     --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>"
+   ```
 
-    > **Note**: Use the `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, and `AZURE_AI_ACCOUNT_NAME` values from your `.env` file to fill in the scope. If your workflow later fails during dataset upload with a permission error, verify the role assignment at this Cognitive Services account scope.
+   > **Note**: Use the `AZURE_SUBSCRIPTION_ID`, `AZURE_RESOURCE_GROUP`, and `AZURE_AI_ACCOUNT_NAME` values from your `.env` file to fill in the scope. If your workflow later fails during dataset upload with a permission error, verify the role assignment at this Cognitive Services account scope.
 
-    > **Tip**: Run this in **PowerShell**, not Git Bash. Git Bash rewrites the leading `/subscriptions/...` scope into a Windows path, and the command fails with `MissingSubscription`. If the directory lookup for `--assignee` also fails, pass the object ID instead:
-    > ```powershell
-    > $objectId = az ad sp show --id "<appId>" --query id -o tsv
-    > az role assignment create `
-    >   --assignee-object-id $objectId `
-    >   --assignee-principal-type ServicePrincipal `
-    >   --role "Foundry User" `
-    >   --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>"
-    > ```
+   > **Tip**: Run this in **PowerShell**, not Git Bash. Git Bash rewrites the leading `/subscriptions/...` scope into a Windows path, and the command fails with `MissingSubscription`. If the directory lookup for `--assignee` also fails, pass the object ID instead:
+   >
+   > ```powershell
+   > $objectId = az ad sp show --id "<appId>" --query id -o tsv
+   > az role assignment create `
+   >   --assignee-object-id $objectId `
+   >   --assignee-principal-type ServicePrincipal `
+   >   --role "Foundry User" `
+   >   --scope "/subscriptions/<subscription-id>/resourceGroups/<resource-group>/providers/Microsoft.CognitiveServices/accounts/<ai-account-name>"
+   > ```
 
-    Verify the assignment before continuing:
+   Verify the assignment before continuing:
 
-    ```powershell
-    az role assignment list --all --assignee "<appId>" --query "[].{role:roleDefinitionName,scope:scope}" -o table
-    ```
+   ```powershell
+   az role assignment list --all --assignee "<appId>" --query "[].{role:roleDefinitionName,scope:scope}" -o table
+   ```
 
-    Create two federated credentials so the workflow can authenticate via OIDC for both manual runs and pull requests. GitHub sends a different token subject for each trigger type, so one credential is required per subject.
+   Create two federated credentials so the workflow can authenticate via OIDC for both manual runs and pull requests. GitHub sends a different token subject for each trigger type, so one credential is required per subject.
 
-    **Credential 1 — manual runs and pushes to main:**
+   **Credential 1 — manual runs and pushes to main:**
 
-    Create `federated-credential.json`:
+   Create `federated-credential.json`:
 
-    ```json
-    {
-      "name": "github-actions",
-      "issuer": "https://token.actions.githubusercontent.com",
-      "subject": "repo:<your-org>/<your-repo>:ref:refs/heads/main",
-      "audiences": ["api://AzureADTokenExchange"]
-    }
-    ```
+   ```json
+   {
+     "name": "github-actions",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:<your-org>/<your-repo>:ref:refs/heads/main",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   ```
 
-    ```powershell
-    az ad app federated-credential create `
-      --id "<appId>" `
-      --parameters @federated-credential.json
-    Remove-Item federated-credential.json
-    ```
+   ```powershell
+   az ad app federated-credential create `
+     --id "<appId>" `
+     --parameters @federated-credential.json
+   Remove-Item federated-credential.json
+   ```
 
-    **Credential 2 — pull requests:**
+   **Credential 2 — pull requests:**
 
-    Create `federated-credential-pr.json`:
+   Create `federated-credential-pr.json`:
 
-    ```json
-    {
-      "name": "github-actions-pr",
-      "issuer": "https://token.actions.githubusercontent.com",
-      "subject": "repo:<your-org>/<your-repo>:pull_request",
-      "audiences": ["api://AzureADTokenExchange"]
-    }
-    ```
+   ```json
+   {
+     "name": "github-actions-pr",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:<your-org>/<your-repo>:pull_request",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   ```
 
-    ```powershell
-    az ad app federated-credential create `
-      --id "<appId>" `
-      --parameters @federated-credential-pr.json
-    Remove-Item federated-credential-pr.json
-    ```
+   ```powershell
+   az ad app federated-credential create `
+     --id "<appId>" `
+     --parameters @federated-credential-pr.json
+   Remove-Item federated-credential-pr.json
+   ```
 
-    > **Important**: Replace `<your-org>/<your-repo>` with your exact GitHub username and repository name. Both values are case-sensitive. If either credential is missing, the workflow will fail with an `AADSTS700213` authentication error for that trigger type.
+   > **Important**: Replace `<your-org>/<your-repo>` with your exact GitHub username and repository name. Both values are case-sensitive. If either credential is missing, the workflow will fail with an `AADSTS700213` authentication error for that trigger type.
 
-    **If your repository issues immutable subject claims:**
+   **If your repository issues immutable subject claims:**
 
-    Current GitHub repositories may present a subject that embeds numeric owner and repository IDs, for example `repo:myuser@231288280/myrepo@1375878516:ref:refs/heads/main`. The subjects above then do not match and the workflow fails with `AADSTS700213` even though both credentials exist.
+   Current GitHub repositories may present a subject that embeds numeric owner and repository IDs, for example `repo:myuser@231288280/myrepo@1375878516:ref:refs/heads/main`. The subjects above then do not match and the workflow fails with `AADSTS700213` even though both credentials exist.
 
-    Read the subject GitHub actually sent from the failed run's log:
+   Read the subject GitHub actually sent from the failed run's log:
 
-    ```powershell
-    gh run view <run-id> --repo <your-org>/<your-repo> --log | Select-String "subject claim"
-    ```
+   ```powershell
+   gh run view <run-id> --repo <your-org>/<your-repo> --log | Select-String "subject claim"
+   ```
 
-    Then create one more credential per trigger type using that exact string:
+   Then create one more credential per trigger type using that exact string:
 
-    ```powershell
-    @"
-    {
-      "name": "github-actions-immutable",
-      "issuer": "https://token.actions.githubusercontent.com",
-      "subject": "<subject exactly as printed in the run log>",
-      "audiences": ["api://AzureADTokenExchange"]
-    }
-    "@ | Set-Content fc-main.json -Encoding utf8
+   ```powershell
+   @"
+   {
+     "name": "github-actions-immutable",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "<subject exactly as printed in the run log>",
+     "audiences": ["api://AzureADTokenExchange"]
+   }
+   "@ | Set-Content fc-main.json -Encoding utf8
 
-    az ad app federated-credential create --id "<appId>" --parameters "@fc-main.json"
-    Remove-Item fc-main.json
-    ```
+   az ad app federated-credential create --id "<appId>" --parameters "@fc-main.json"
+   Remove-Item fc-main.json
+   ```
 
-    Repeat for the pull request subject, which uses the same `repo:<owner>@<id>/<repo>@<id>` prefix followed by `:pull_request`. An app can hold multiple federated credentials, so keeping both forms is fine.
+   Repeat for the pull request subject, which uses the same `repo:<owner>@<id>/<repo>@<id>` prefix followed by `:pull_request`. An app can hold multiple federated credentials, so keeping both forms is fine.
 
 1. **Configure GitHub Secrets**
 
-    Add the following secrets to your repository under **Settings → Secrets and variables → Actions → New repository secret**:
+   Add the following secrets to your repository under **Settings → Secrets and variables → Actions → New repository secret**:
 
-    | Secret Name                    | Where to find it                                        |
-    |--------------------------------|---------------------------------------------------------|
-    | `AZURE_CLIENT_ID`              | `appId` from `az ad sp create-for-rbac` output          |
-    | `AZURE_TENANT_ID`              | `tenant` from `az ad sp create-for-rbac` output         |
-    | `AZURE_SUBSCRIPTION_ID`        | `AZURE_SUBSCRIPTION_ID` in your `.env` file             |
-    | `AZURE_AI_PROJECT_ENDPOINT`    | `AZURE_AI_PROJECT_ENDPOINT` in your `.env` file         |
+   | Secret Name                 | Where to find it                                |
+   | --------------------------- | ----------------------------------------------- |
+   | `AZURE_CLIENT_ID`           | `$appId` from `az ad app create`                |
+   | `AZURE_TENANT_ID`           | `$tenantId` from `az account show`              |
+   | `AZURE_SUBSCRIPTION_ID`     | `AZURE_SUBSCRIPTION_ID` in your `.env` file     |
+   | `AZURE_AI_PROJECT_ENDPOINT` | `AZURE_AI_PROJECT_ENDPOINT` in your `.env` file |
 
-    Add a repository variable (not secret) for the model name. The workflow falls back to `gpt-5.1`, so this is required whenever you deployed a different model:
-    - **Settings → Secrets and variables → Actions → Variables → New repository variable**
-    - Name: `MODEL_NAME`, Value: the model deployment you created during provisioning
+   Add a repository variable (not secret) for the model name. The workflow falls back to `gpt-5.1`, so this is required whenever you deployed a different model:
+   - **Settings → Secrets and variables → Actions → Variables → New repository variable**
+   - Name: `MODEL_NAME`, Value: the model deployment you created during provisioning
 
-    The same configuration from the command line:
+   The same configuration from the command line:
 
-    ```powershell
-    gh secret set AZURE_CLIENT_ID --body "<appId>"
-    gh secret set AZURE_TENANT_ID --body "<tenant>"
-    gh secret set AZURE_SUBSCRIPTION_ID --body "<subscription-id>"
-    gh secret set AZURE_AI_PROJECT_ENDPOINT --body "<project-endpoint>"
-    gh variable set MODEL_NAME --body "<model-deployment-name>"
-    ```
+   ```powershell
+   gh secret set AZURE_CLIENT_ID --body "<appId>"
+   gh secret set AZURE_TENANT_ID --body "<tenant>"
+   gh secret set AZURE_SUBSCRIPTION_ID --body "<subscription-id>"
+   gh secret set AZURE_AI_PROJECT_ENDPOINT --body "<project-endpoint>"
+   gh variable set MODEL_NAME --body "<model-deployment-name>"
+   ```
 
 1. **Test the workflow manually**
 
-    Before testing with a PR, verify the workflow runs successfully with a manual trigger:
+   Before testing with a PR, verify the workflow runs successfully with a manual trigger:
+   1. Go to your repository on GitHub
+   1. Navigate to **Actions → Evaluate Trail Guide Agent**
+   1. Click **Run workflow**, select `main`, and click **Run workflow**
+   1. Wait for the run to complete and verify it passes
 
-    1. Go to your repository on GitHub
-    1. Navigate to **Actions → Evaluate Trail Guide Agent**
-    1. Click **Run workflow**, select `main`, and click **Run workflow**
-    1. Wait for the run to complete and verify it passes
-
-    > **Note**: The GitHub Actions run executes the same cloud evaluation as the local script, so 15-60+ minute runtimes are possible here as well.
+   > **Note**: The GitHub Actions run executes the same cloud evaluation as the local script, so 15-60+ minute runtimes are possible here as well.
 
 1. **Test with a pull request**
 
-    The workflow runs automatically when a PR modifies files under `src/agents/trail_guide_agent/`. To test it, create a branch, make a small change, and open a PR:
+   The workflow runs automatically when a PR modifies files under `src/agents/trail_guide_agent/`. To test it, create a branch, make a small change, and open a PR:
 
-    ```powershell
-    git checkout -b test/trigger-evaluation
-    # Make a small change to any agent file, for example:
-    code src/agents/trail_guide_agent/prompts/v1_instructions.txt
-    git add .
-    git commit -m "test: trigger evaluation workflow"
-    git push origin test/trigger-evaluation
-    ```
+   ```powershell
+   git checkout -b test/trigger-evaluation
+   # Make a small change to any agent file, for example:
+   code src/agents/trail_guide_agent/prompts/v1_instructions.txt
+   git add .
+   git commit -m "test: trigger evaluation workflow"
+   git push origin test/trigger-evaluation
+   ```
 
-    Then open a pull request from `test/trigger-evaluation` → `main` on GitHub. The workflow will start automatically.
+   Then open a pull request from `test/trigger-evaluation` → `main` on GitHub. The workflow will start automatically.
 
 1. **View results in the PR**
 
-    Once the workflow completes, a comment is posted to your PR with:
-    - Evaluation scores and pass rates for each criterion
-    - Full log output in a collapsible section
-    - Link to detailed results in the Microsoft Foundry portal
+   Once the workflow completes, a comment is posted to your PR with:
+   - Evaluation scores and pass rates for each criterion
+   - Full log output in a collapsible section
+   - Link to detailed results in the Microsoft Foundry portal
 
 ### Review results in Azure portal
 
@@ -665,86 +676,86 @@ Document your findings and create an analysis report.
 
 1. Create a results directory:
 
-    ```powershell
-    New-Item -ItemType Directory -Path experiments/automated -Force
-    New-Item -ItemType File -Path experiments/automated/evaluation_analysis.md
-    ```
+   ```powershell
+   New-Item -ItemType Directory -Path experiments/automated -Force
+   New-Item -ItemType File -Path experiments/automated/evaluation_analysis.md
+   ```
 
 1. Add your evaluation analysis:
 
-    ```markdown
-    # Cloud Evaluation Analysis: Trail Guide Agent
-    
-    ## Evaluation Summary
-    
-    Evaluated: 89 test cases  
-    Time: ~10 minutes  
-    Scoring: GPT-5.1 as an LLM judge (1-5 scale)
-    
-    | Evaluator | Average Score | Pass Rate | Assessment |
-    |-----------|---------------|-----------|------------|
-    | Intent Resolution | 4.52 | 96.0% | Excellent intent understanding |
-    | Relevance | 4.41 | 95.5% | High query-response alignment |
-    | Groundedness | 4.18 | 91.0% | Good factual accuracy |
-    | **Average** | **4.37** | **94.2%** | **High Quality Overall** |
-    
-    ## Key Findings
-    
-    ### Strengths
-    
-    - High average scores across all quality dimensions (>4.0)
-    - Excellent intent resolution shows queries are well understood
-    - Strong relevance indicates appropriate query-response alignment
-    - Pass rates above 90% demonstrate consistent quality
-    
-    ### Areas for Improvement
-    
-    - Groundedness slightly lower than other metrics (4.18)
-    - Review failed cases (5-10%) to identify common patterns
-    - Consider if certain query types need prompt refinement
-    
-    ### Failed Evaluations Analysis
-    
-    Review the 5-10% of responses that scored below threshold:
-    
-    - **Common failure patterns**: [Document patterns you observe]
-    - **Query types affected**: [Identify if certain topics are problematic]
-    - **Recommended improvements**: [Suggest prompt or agent changes]
-    
-    ## Automated Evaluation Benefits
-    
-    - **Scales** to hundreds/thousands of items efficiently
-    - **Consistent** scoring criteria across all evaluations
-    - **Fast** turnaround (10 minutes for 89 items)
-    - **Repeatable** and trackable over time
-    - **CI/CD ready** for integration into deployment pipelines
-    - **Detailed reasoning** provided for each score
-    
-    ## Recommended Use Cases
-    
-    | Scenario | Recommended Approach | Rationale |
-    |----------|---------------------|-----------|
-    | Testing new prompts (50+ queries) | **Automated** | Scale, speed, consistency |
-    | Continuous integration testing | **Automated** | Fast feedback in pipelines |
-    | Baseline establishment | **Automated** | Quantifiable metrics at scale |
-    | Production monitoring (ongoing) | **Automated** | Continuous quality tracking |
-    | Investigating edge cases | **Manual review** | Deep dive into specific failures |
-    
-    ## Next Steps
-    
-    1. Use automated evaluation as primary quality gate for agent changes
-    2. Set up automated evaluation in CI/CD pipeline
-    3. Establish alerting thresholds (e.g., intent_resolution < 4.0 fails deployment)
-    4. Schedule regular evaluations to track quality over time
-    5. Investigate and address patterns in failed evaluations
-    ```
+   ```markdown
+   # Cloud Evaluation Analysis: Trail Guide Agent
+
+   ## Evaluation Summary
+
+   Evaluated: 89 test cases  
+   Time: ~10 minutes  
+   Scoring: GPT-5.1 as an LLM judge (1-5 scale)
+
+   | Evaluator         | Average Score | Pass Rate | Assessment                     |
+   | ----------------- | ------------- | --------- | ------------------------------ |
+   | Intent Resolution | 4.52          | 96.0%     | Excellent intent understanding |
+   | Relevance         | 4.41          | 95.5%     | High query-response alignment  |
+   | Groundedness      | 4.18          | 91.0%     | Good factual accuracy          |
+   | **Average**       | **4.37**      | **94.2%** | **High Quality Overall**       |
+
+   ## Key Findings
+
+   ### Strengths
+
+   - High average scores across all quality dimensions (>4.0)
+   - Excellent intent resolution shows queries are well understood
+   - Strong relevance indicates appropriate query-response alignment
+   - Pass rates above 90% demonstrate consistent quality
+
+   ### Areas for Improvement
+
+   - Groundedness slightly lower than other metrics (4.18)
+   - Review failed cases (5-10%) to identify common patterns
+   - Consider if certain query types need prompt refinement
+
+   ### Failed Evaluations Analysis
+
+   Review the 5-10% of responses that scored below threshold:
+
+   - **Common failure patterns**: [Document patterns you observe]
+   - **Query types affected**: [Identify if certain topics are problematic]
+   - **Recommended improvements**: [Suggest prompt or agent changes]
+
+   ## Automated Evaluation Benefits
+
+   - **Scales** to hundreds/thousands of items efficiently
+   - **Consistent** scoring criteria across all evaluations
+   - **Fast** turnaround (10 minutes for 89 items)
+   - **Repeatable** and trackable over time
+   - **CI/CD ready** for integration into deployment pipelines
+   - **Detailed reasoning** provided for each score
+
+   ## Recommended Use Cases
+
+   | Scenario                          | Recommended Approach | Rationale                        |
+   | --------------------------------- | -------------------- | -------------------------------- |
+   | Testing new prompts (50+ queries) | **Automated**        | Scale, speed, consistency        |
+   | Continuous integration testing    | **Automated**        | Fast feedback in pipelines       |
+   | Baseline establishment            | **Automated**        | Quantifiable metrics at scale    |
+   | Production monitoring (ongoing)   | **Automated**        | Continuous quality tracking      |
+   | Investigating edge cases          | **Manual review**    | Deep dive into specific failures |
+
+   ## Next Steps
+
+   1. Use automated evaluation as primary quality gate for agent changes
+   2. Set up automated evaluation in CI/CD pipeline
+   3. Establish alerting thresholds (e.g., intent_resolution < 4.0 fails deployment)
+   4. Schedule regular evaluations to track quality over time
+   5. Investigate and address patterns in failed evaluations
+   ```
 
 1. Save the file and commit your analysis:
 
-    ```powershell
-    git add experiments/automated/
-    git commit -m "Complete automated evaluation analysis"
-    ```
+   ```powershell
+   git add experiments/automated/
+   git commit -m "Complete automated evaluation analysis"
+   ```
 
 ## Compare evaluation configurations (Optional)
 
@@ -792,17 +803,17 @@ The resources you provisioned continue to bill after the exercise ends. When you
 
 1. Remove everything the template created:
 
-    ```powershell
-    azd down --purge --force
-    ```
+   ```powershell
+   azd down --purge --force
+   ```
 
-    `--purge` matters for the Foundry (AI Services) account: without it the account is soft-deleted and its name remains reserved.
+   `--purge` matters for the Foundry (AI Services) account: without it the account is soft-deleted and its name remains reserved.
 
 1. Remove the service principal if you created one for GitHub Actions:
 
-    ```powershell
-    az ad sp delete --id "<appId>"
-    ```
+   ```powershell
+   az ad sp delete --id "<appId>"
+   ```
 
 ## Troubleshooting
 
@@ -823,6 +834,7 @@ The resources you provisioned continue to bill after the exercise ends. When you
 **Symptom**: `(MissingSubscription) The request did not have a subscription or a valid tenant level resource provider.`
 
 **Resolution**:
+
 - Run the command in **PowerShell**. Git Bash rewrites the leading `/subscriptions/...` scope into a Windows path
 - If the directory lookup for `--assignee` fails, use `--assignee-object-id` together with `--assignee-principal-type ServicePrincipal`
 
@@ -837,6 +849,7 @@ The resources you provisioned continue to bill after the exercise ends. When you
 **Symptom**: Evaluation runs for 20+ minutes or appears stuck.
 
 **Resolution**:
+
 - Check Azure OpenAI quota and rate limits in Azure portal
 - Verify the model deployment has enough capacity in the selected region; low-capacity deployments can stay in `running` for a long time without surfacing an immediate error
 - Reduce dataset size for initial testing (e.g., first 50 entries)
@@ -848,6 +861,7 @@ The resources you provisioned continue to bill after the exercise ends. When you
 **Symptom**: `401 Unauthorized` or `403 Forbidden` errors.
 
 **Resolution**:
+
 - Run `az login` to refresh Azure credentials
 - Verify the service principal has the **Foundry User** role at the CognitiveServices account scope — this role has `Microsoft.CognitiveServices/*` wildcard data actions required for `AIServices/agents/write`. `Foundry Developer` alone is **not sufficient**
 - Check `AZURE_AI_PROJECT_ENDPOINT` in `.env` file is correct and includes `/api/projects/<project>`
@@ -858,6 +872,7 @@ The resources you provisioned continue to bill after the exercise ends. When you
 **Symptom**: OIDC login fails with errors such as `AADSTS70025` or the workflow cannot find the expected subscription.
 
 **Resolution**:
+
 - Run `az account show --query "{subscription:id, tenant:tenantId}" -o table` and confirm the tenant matches the subscription that contains your Foundry resources
 - If the app or service principal was created in the wrong tenant, recreate it in the correct tenant and update `AZURE_TENANT_ID` in GitHub Secrets
 - Recreate any federated credentials on the app registration after recreating the app or service principal
@@ -869,6 +884,7 @@ The resources you provisioned continue to bill after the exercise ends. When you
 **Resolution**:
 
 GitHub sends a different OIDC subject depending on the trigger event:
+
 - `workflow_dispatch` or `push` on main → subject is `repo:<org>/<repo>:ref:refs/heads/main`
 - `pull_request` → subject is `repo:<org>/<repo>:pull_request`
 
@@ -901,6 +917,7 @@ Remove-Item federated-credential-pr.json
 **Symptom**: Automated scores differ significantly from expected manual scores.
 
 **Resolution**:
+
 - Review evaluator reasoning in Azure portal to understand scoring logic
 - Check if query-response pairs have sufficient context for evaluation
 - Verify `ground_truth` field provides appropriate factual reference
@@ -911,6 +928,7 @@ Remove-Item federated-credential-pr.json
 **Symptom**: Evaluation fails with `429 Too Many Requests` errors.
 
 **Resolution**:
+
 - Check Azure OpenAI deployment tokens-per-minute (TPM) quota
 - Increase quota in Azure portal if needed
 - Split large datasets into smaller batches
